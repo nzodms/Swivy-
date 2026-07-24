@@ -56,6 +56,45 @@ export function compatibilityPercent(profile: TasteProfile, product: Product): n
   return Math.round(Math.min(0.99, Math.max(0.35, centered)) * 100);
 }
 
+export interface AffinityBreakdownEntry {
+  dimension: string;
+  /** Pondération de la dimension dans le score global. */
+  weight: number;
+  /** Contribution signée réelle à l'affinité (déjà pondérée). */
+  contribution: number;
+  /** Valeurs du produit qui ont compté. */
+  values: string[];
+}
+
+/**
+ * Décomposition du score, dimension par dimension — utilisée par
+ * l'écran de diagnostic pour expliquer chaque classement.
+ */
+export function affinityBreakdown(profile: TasteProfile, product: Product): AffinityBreakdownEntry[] {
+  const names = ['Styles', 'Couleurs', 'Matières', 'Catégorie', 'Formes', 'Gamme de prix', 'Marque'];
+  const entries: AffinityBreakdownEntry[] = DIMENSIONS.map((dim, index) => {
+    const weights = dim.map(profile);
+    const values = dim.values(product);
+    let sum = 0;
+    for (const value of values) sum += weights[value] ?? 0;
+    const contribution =
+      values.length === 0 ? 0 : dim.weight * Math.tanh(sum / values.length / 2.5);
+    return {
+      dimension: names[index] ?? `Dimension ${index}`,
+      weight: dim.weight,
+      contribution,
+      values,
+    };
+  });
+  entries.push({
+    dimension: 'Audace',
+    weight: BOLDNESS_WEIGHT,
+    contribution: BOLDNESS_WEIGHT * (1 - Math.abs(profile.boldness - product.boldness) * 2),
+    values: [product.boldness.toFixed(2)],
+  });
+  return entries;
+}
+
 /** Bonus contextuels utilisés pour ordonner le deck (jamais affichés). */
 export function contextBonus(product: Product, selections: OnboardingSelections): number {
   let bonus = 0.08 * product.popularity;

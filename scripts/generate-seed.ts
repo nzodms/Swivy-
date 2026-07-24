@@ -35,7 +35,7 @@ interface AttributeValueRow {
   label: string;
 }
 
-const ATTRIBUTES: Array<{ id: string; label: string }> = [
+const ATTRIBUTES: { id: string; label: string }[] = [
   { id: 'style', label: 'Style' },
   { id: 'color', label: 'Couleur' },
   { id: 'material', label: 'Matière' },

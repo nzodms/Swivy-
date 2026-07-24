@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components';
+import { track } from '@/features/analytics/track';
 import { SwipeActionBar } from '@/features/discovery/SwipeActionBar';
 import { SwipeDeck, type SwipeDeckHandle } from '@/features/discovery/SwipeDeck';
 import { OnboardingScaffold } from '@/features/onboarding/OnboardingScaffold';
@@ -25,13 +26,13 @@ export default function CalibrationScreen() {
   const seedProfileFromSelections = useTasteStore((state) => state.seedProfileFromSelections);
 
   const [remaining, setRemaining] = useState<Product[]>(calibrationProducts);
-  const seeded = useRef(false);
 
   // Les choix des étapes précédentes deviennent les premiers signaux du profil.
-  if (!seeded.current) {
-    seeded.current = true;
+  useEffect(() => {
     seedProfileFromSelections();
-  }
+    // Une seule fois à l'arrivée sur l'écran.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const total = calibrationProducts.length;
   const done = total - remaining.length;
@@ -45,6 +46,11 @@ export default function CalibrationScreen() {
   }, [progressPercent]);
 
   const handleSwipe = (product: Product, action: SwipeAction) => {
+    track('calibration_swipe', {
+      productId: product.id,
+      position: total - remaining.length,
+      screen: 'calibration',
+    });
     recordSwipe(product, action, 'calibration');
     const next = remaining.filter((candidate) => candidate.id !== product.id);
     setRemaining(next);
@@ -81,7 +87,6 @@ export default function CalibrationScreen() {
           products={remaining}
           compatibilityFor={(product) => compatibilityPercent(profile, product)}
           onSwipe={handleSwipe}
-          onPressDetails={() => undefined}
         />
       </View>
 

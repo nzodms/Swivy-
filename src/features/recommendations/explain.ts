@@ -1,5 +1,4 @@
-import type { Product, TasteProfile } from '@/types';
-import { STYLE_LABELS, type StyleSlug } from '@/types';
+import { STYLE_LABELS, type Product, type StyleSlug, type TasteProfile } from '@/types';
 import { topEntries } from './tasteProfile';
 
 /**

@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Info } from 'lucide-react-native';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText, CompatibilityBadge, MerchantBadge, ProductPrice, StyleTag } from '@/components';
@@ -12,7 +12,8 @@ import { BADGE_LABELS, CATEGORY_LABELS, STYLE_LABELS, type Product } from '@/typ
 interface ProductSwipeCardProps {
   product: Product;
   compatibilityPercent: number;
-  onPressDetails: () => void;
+  /** Absent = bouton info masqué (calibration, cartes d'arrière-plan). */
+  onPressDetails?: () => void;
 }
 
 const IMAGE_PLACEHOLDER = { blurhash: 'LKO2?U%2Tw=w]~RBVZRi};RPxuwH' } as const;
@@ -20,8 +21,11 @@ const IMAGE_PLACEHOLDER = { blurhash: 'LKO2?U%2Tw=w]~RBVZRi};RPxuwH' } as const;
 /**
  * Grande carte produit du feed de découverte.
  * Image plein cadre, dégradé bas très léger, informations lisibles.
+ * Mémoïsée : une carte ne se re-rend que si son produit ou son score change
+ * (le geste de swipe n'anime que le conteneur, jamais ce contenu).
  */
-export function ProductSwipeCard({ product, compatibilityPercent, onPressDetails }: ProductSwipeCardProps) {
+export const ProductSwipeCard = memo(
+  function ProductSwipeCard({ product, compatibilityPercent, onPressDetails }: ProductSwipeCardProps) {
   const [imageIndex, setImageIndex] = useState(0);
   const merchant = getMerchant(product.merchantId);
   const primaryStyle = product.styles[0];
@@ -101,19 +105,25 @@ export function ProductSwipeCard({ product, compatibilityPercent, onPressDetails
           </View>
           {merchant ? <MerchantBadge name={merchant.name} onDark /> : null}
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Voir la fiche produit"
-          hitSlop={10}
-          onPress={onPressDetails}
-          style={styles.infoButton}
-        >
-          <Info size={20} color={colors.textPrimary} strokeWidth={2.2} />
-        </Pressable>
+        {onPressDetails ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Voir la fiche produit"
+            hitSlop={10}
+            onPress={onPressDetails}
+            style={styles.infoButton}
+          >
+            <Info size={20} color={colors.textPrimary} strokeWidth={2.2} />
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
-}
+  },
+  (previous, next) =>
+    previous.product.id === next.product.id &&
+    previous.compatibilityPercent === next.compatibilityPercent,
+);
 
 const styles = StyleSheet.create({
   card: {

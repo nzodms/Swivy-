@@ -22,15 +22,22 @@ interface ScoredProduct {
 }
 
 /** Motif de tirage sur 10 cartes : 7 compatibles, 2 adjacentes, 1 exploratoire. */
-const TIER_PATTERN: ReadonlyArray<'top' | 'mid' | 'wild'> = [
+const TIER_PATTERN: readonly ('top' | 'mid' | 'wild')[] = [
   'top', 'top', 'mid', 'top', 'top', 'wild', 'top', 'mid', 'top', 'top',
 ];
 
 const MAX_SAME_BRAND_WINDOW = 2;
 const MAX_SAME_CATEGORY_RUN = 2;
 const MAX_SAME_STYLE_RUN = 3;
+/** Part maximale d'une même marque dans un deck complet. */
+const MAX_BRAND_SHARE = 0.25;
 
-function violatesDiversity(candidate: Product, picked: Product[]): boolean {
+function violatesDiversity(candidate: Product, picked: Product[], targetCount: number): boolean {
+  // Plafond global : une marque ne dépasse jamais ~25 % du deck.
+  const brandCap = Math.max(2, Math.floor(targetCount * MAX_BRAND_SHARE));
+  const totalSameBrand = picked.filter((p) => p.brand === candidate.brand).length;
+  if (totalSameBrand >= brandCap) return true;
+
   const recentBrandWindow = picked.slice(-5);
   const sameBrand = recentBrandWindow.filter((p) => p.brand === candidate.brand).length;
   if (sameBrand >= MAX_SAME_BRAND_WINDOW) return true;
@@ -55,12 +62,17 @@ function violatesDiversity(candidate: Product, picked: Product[]): boolean {
   return false;
 }
 
-function takeFrom(tier: ScoredProduct[], picked: Product[], pickedIds: Set<string>): Product | null {
+function takeFrom(
+  tier: ScoredProduct[],
+  picked: Product[],
+  pickedIds: Set<string>,
+  targetCount: number,
+): Product | null {
   for (let i = 0; i < tier.length; i += 1) {
     const entry = tier[i];
     if (!entry) continue;
     if (pickedIds.has(entry.product.id)) continue;
-    if (violatesDiversity(entry.product, picked)) continue;
+    if (violatesDiversity(entry.product, picked, targetCount)) continue;
     tier.splice(i, 1);
     return entry.product;
   }
@@ -107,12 +119,12 @@ export function buildDeck(options: DeckOptions): Product[] {
 
   for (let i = 0; picked.length < count; i += 1) {
     const wanted = TIER_PATTERN[i % TIER_PATTERN.length] ?? 'top';
-    const order: Array<'top' | 'mid' | 'wild'> =
+    const order: ('top' | 'mid' | 'wild')[] =
       wanted === 'top' ? ['top', 'mid', 'wild'] : wanted === 'mid' ? ['mid', 'top', 'wild'] : ['wild', 'mid', 'top'];
 
     let product: Product | null = null;
     for (const tierName of order) {
-      product = takeFrom(tiers[tierName], picked, pickedIds);
+      product = takeFrom(tiers[tierName], picked, pickedIds, count);
       if (product) break;
     }
     if (!product) break; // catalogue épuisé

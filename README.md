@@ -53,13 +53,41 @@ généré) → feed de swipe avec annulation → fiche produit → similaires �
 favoris filtrables et triables → sélections "Pour toi" → ADN esthétique dans
 Profil.
 
+## Version web (Vercel)
+
+L'app tourne aussi dans le navigateur (Expo Web + react-native-web) : swipe à
+la souris et au tactile, expérience centrée en largeur téléphone sur desktop,
+plein écran sur mobile web. `vercel.json` est prêt :
+
+```bash
+npm run build:web        # exporte dist/ (SPA)
+npx vercel deploy --prod # depuis un poste connecté à ton compte Vercel
+```
+
+Alternative sans CLI : importer le dépôt dans Vercel (Add New Project) — la
+configuration est lue depuis `vercel.json`, aucune variable requise pour le
+mode démo. Les rewrites font qu'un rechargement sur une route profonde ne
+renvoie jamais de 404.
+
 ## Scripts
 
 | Commande | Rôle |
 | --- | --- |
-| `npm start` | Serveur de développement Expo |
+| `npm start` | Serveur de développement Expo (natif + web) |
+| `npm test` | Typecheck + audit du catalogue + simulation du moteur |
 | `npm run typecheck` | TypeScript strict, zéro erreur attendue |
+| `npm run lint` | ESLint (config Expo) |
+| `npm run test:reco` | Simulation multi-personas du moteur → `docs/RECOMMENDATION_TESTS.md` |
+| `npm run audit:catalog` | Assertions de cohérence sur les 105 produits |
+| `npm run build:web` | Export web de production (`dist/`) |
 | `npm run generate:seed` | Régénère `supabase/seed.sql` depuis `src/mocks` |
+| `npx tsx scripts/e2e-web.ts` | Parcours de bout en bout Chromium sur `dist/` (servir avec `npx serve -s dist -l 4173`) |
+
+## Écran de diagnostic
+
+Appui long sur l'avatar (onglet Profil) ou route `/dev/diagnostics` : profil
+de goût complet, décomposition du score de la carte courante, exploration,
+derniers swipes, exclusions — voir [docs/DIAGNOSTICS.md](docs/DIAGNOSTICS.md).
 
 ## Documentation
 
@@ -67,6 +95,9 @@ Profil.
 - [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) — tokens, typographie, composants
 - [docs/DATABASE.md](docs/DATABASE.md) — schéma Supabase et modèle universel
 - [docs/RECOMMENDATION_ENGINE.md](docs/RECOMMENDATION_ENGINE.md) — moteur V1
+- [docs/RECOMMENDATION_TESTS.md](docs/RECOMMENDATION_TESTS.md) — rapport de simulation du moteur
+- [docs/ANALYTICS_EVENTS.md](docs/ANALYTICS_EVENTS.md) — instrumentation produit locale
+- [docs/DIAGNOSTICS.md](docs/DIAGNOSTICS.md) — écran développeur
 - [docs/SETUP.md](docs/SETUP.md) — installation détaillée et variables d'environnement
 
 ## Variables d'environnement

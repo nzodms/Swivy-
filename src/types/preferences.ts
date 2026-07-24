@@ -26,7 +26,7 @@ export interface OnboardingSelections {
 }
 
 export interface StyleSummary {
-  dominantStyles: Array<{ style: StyleSlug; share: number }>;
+  dominantStyles: { style: StyleSlug; share: number }[];
   topColors: string[];
   topMaterials: string[];
   averageBudget: number | null;

@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { AppButton, AppScreen, AppText, PreferenceBar, StyleTag } from '@/components';
+import { track } from '@/features/analytics/track';
 import { boldnessLabel, buildStyleSummary } from '@/features/recommendations';
 import { useLikedProducts } from '@/hooks/useLikedProducts';
 import { useTasteStore } from '@/stores/tasteStore';
@@ -104,6 +105,7 @@ export default function ResultScreen() {
         <AppButton
           label="Commencer à découvrir"
           onPress={() => {
+            track('onboarding_completed', { screen: 'result' });
             completeOnboarding();
             router.replace('/(tabs)');
           }}

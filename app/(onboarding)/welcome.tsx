@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { AppButton, AppScreen, AppText } from '@/components';
+import { track } from '@/features/analytics/track';
 import { products } from '@/mocks/products';
 import { colors, radius, shadows, spacing } from '@/theme';
 
@@ -75,7 +76,10 @@ export default function WelcomeScreen() {
       <Animated.View entering={FadeInDown.delay(600).duration(400)} style={styles.footer}>
         <AppButton
           label="Découvrir mon style"
-          onPress={() => router.push('/(onboarding)/rooms')}
+          onPress={() => {
+            track('onboarding_started', { screen: 'welcome' });
+            router.push('/(onboarding)/rooms');
+          }}
           accessibilityHint="Commence la découverte de ton profil déco"
         />
         <Link href="/(auth)/sign-in" asChild>

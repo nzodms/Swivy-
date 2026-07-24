@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Bell, ChevronRight, Eye, LogIn, LogOut, RefreshCcw, ShieldCheck } from 'lucide-react-native';
 import { useMemo } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { AppHeader, AppScreen, AppText } from '@/components';
 import { StyleDnaCard } from '@/features/profile/StyleDnaCard';
@@ -13,6 +13,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTasteStore } from '@/stores/tasteStore';
 import { useToastStore } from '@/stores/toastStore';
 import { colors, radius, shadows, spacing } from '@/theme';
+import { confirmDialog, infoDialog } from '@/utils/dialogs';
 
 /** Nombre de signaux à partir duquel le profil est considéré comme mûr. */
 const MATURE_SIGNAL_COUNT = 60;
@@ -42,21 +43,17 @@ export default function ProfileScreen() {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   const confirmReset = () => {
-    Alert.alert(
-      'Réinitialiser mon profil',
-      'Tes swipes, ton profil esthétique et ton onboarding seront effacés. Tes favoris sont conservés.',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Réinitialiser',
-          style: 'destructive',
-          onPress: () => {
-            resetAll();
-            router.replace('/(onboarding)/welcome');
-          },
-        },
-      ],
-    );
+    confirmDialog({
+      title: 'Réinitialiser mon profil',
+      message:
+        'Tes swipes, ton profil esthétique et ton onboarding seront effacés. Tes favoris sont conservés.',
+      confirmLabel: 'Réinitialiser',
+      destructive: true,
+      onConfirm: () => {
+        resetAll();
+        router.replace('/(onboarding)/welcome');
+      },
+    });
   };
 
   const restoreHidden = () => {
@@ -70,13 +67,18 @@ export default function ProfileScreen() {
         <View style={styles.padded}>
           <AppHeader title="Profil" />
 
-          {/* Identité */}
+          {/* Identité — appui long sur l'avatar : écran de diagnostic interne */}
           <View style={styles.identityCard}>
-            <View style={styles.avatar}>
+            <Pressable
+              accessibilityLabel="Avatar"
+              onLongPress={() => router.push('/dev/diagnostics')}
+              delayLongPress={600}
+              style={styles.avatar}
+            >
               <AppText variant="heading" style={styles.avatarText}>
                 {initials}
               </AppText>
-            </View>
+            </Pressable>
             <View style={styles.identityText}>
               <AppText variant="subheading">{displayName}</AppText>
               <AppText variant="caption">
@@ -160,7 +162,7 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 style={styles.settingRow}
                 onPress={() =>
-                  Alert.alert(
+                  infoDialog(
                     'Confidentialité',
                     'Ton profil esthétique est calculé et stocké sur ton appareil. Aucune donnée de swipe n’est partagée sans compte.',
                   )

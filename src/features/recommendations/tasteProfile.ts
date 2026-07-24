@@ -117,7 +117,7 @@ export function applyOnboardingSelections(
 }
 
 /** Les N clés les plus fortes (poids strictement positif) d'une dimension. */
-export function topEntries(map: Record<string, number>, count: number): Array<[string, number]> {
+export function topEntries(map: Record<string, number>, count: number): [string, number][] {
   return Object.entries(map)
     .filter(([, weight]) => weight > 0)
     .sort((a, b) => b[1] - a[1])

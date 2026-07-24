@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Heart, Share2 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { FlatList, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { FlatList, Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
 
 import {
   AppHeader,
@@ -82,9 +82,18 @@ export default function FavoritesScreen() {
     const lines = visible
       .slice(0, 12)
       .map((entry) => `• ${entry.product.name} (${entry.product.price} €) — ${entry.product.url}`);
-    await Share.share({
-      message: `Ma wishlist déco sur Swivy :\n\n${lines.join('\n')}`,
-    });
+    const message = `Ma wishlist déco sur Swivy :\n\n${lines.join('\n')}`;
+    try {
+      await Share.share({ message });
+    } catch {
+      // Web sans API de partage : copie dans le presse-papiers.
+      if (Platform.OS === 'web' && navigator.clipboard) {
+        await navigator.clipboard.writeText(message);
+        showToast('Wishlist copiée dans le presse-papiers', 'success');
+      } else {
+        showToast('Partage indisponible sur cet appareil', 'error');
+      }
+    }
   };
 
   return (

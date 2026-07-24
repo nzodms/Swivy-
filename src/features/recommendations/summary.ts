@@ -1,5 +1,4 @@
-import type { Product, StyleSummary, TasteProfile } from '@/types';
-import { styleSlugSchema, type StyleSlug } from '@/types';
+import { styleSlugSchema, type Product, type StyleSlug, type StyleSummary, type TasteProfile } from '@/types';
 import { topEntries } from './tasteProfile';
 
 /**

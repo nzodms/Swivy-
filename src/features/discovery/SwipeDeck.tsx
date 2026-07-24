@@ -21,7 +21,8 @@ interface SwipeDeckProps {
   products: Product[];
   compatibilityFor: (product: Product) => number;
   onSwipe: (product: Product, action: SwipeAction) => void;
-  onPressDetails: (product: Product) => void;
+  /** Absent = bouton info masqué sur les cartes (mode calibration). */
+  onPressDetails?: (product: Product) => void;
 }
 
 export interface SwipeDeckHandle {
@@ -151,7 +152,7 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
                   <ProductSwipeCard
                     product={product}
                     compatibilityPercent={compatibilityFor(product)}
-                    onPressDetails={() => onPressDetails(product)}
+                    onPressDetails={onPressDetails ? () => onPressDetails(product) : undefined}
                   />
                   <SwipeBadge kind="like" progress={likeProgress} />
                   <SwipeBadge kind="dislike" progress={dislikeProgress} />
@@ -164,12 +165,16 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
             <Animated.View
               key={product.id}
               pointerEvents="none"
+              // Les cartes d'arrière-plan sont invisibles pour l'accessibilité
+              // (VoiceOver / TalkBack ne doivent lire que la carte du dessus).
+              aria-hidden
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
               style={[styles.cardWrapper, index === 1 ? nextCardStyle : thirdCardStyle]}
             >
               <ProductSwipeCard
                 product={product}
                 compatibilityPercent={compatibilityFor(product)}
-                onPressDetails={() => undefined}
               />
             </Animated.View>
           );

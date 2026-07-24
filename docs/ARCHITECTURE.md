@@ -21,8 +21,10 @@ app/                      # Routes Expo Router (aucune logique métier)
 src/
   components/             # Design system réutilisable (AppText, AppButton, …)
   features/
+    analytics/            # Événements produit typés, file locale persistée
     auth/                 # Schémas Zod, champ RHF, useAuth (Supabase ou démo)
     discovery/            # SwipeDeck, ProductSwipeCard, SwipeActionBar, useSwipeDeck
+    import/               # Types du futur pipeline d'import de catalogues (aucune UI)
     onboarding/           # Scaffold, progression, tuiles, range slider
     products/             # ImageGallery
     profile/              # StyleDnaCard

@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { track } from '@/features/analytics/track';
+
 export interface FavoriteEntry {
   productId: string;
   at: number;
@@ -32,7 +34,10 @@ export const useFavoritesStore = create<FavoritesState>()(
       favorites: [],
       collections: [],
 
-      addFavorite: (productId, superlike = false) =>
+      addFavorite: (productId, superlike = false) => {
+        if (!get().favorites.some((f) => f.productId === productId)) {
+          track('favorite_added', { productId });
+        }
         set((state) => {
           const existing = state.favorites.find((f) => f.productId === productId);
           if (existing) {
@@ -47,16 +52,21 @@ export const useFavoritesStore = create<FavoritesState>()(
             return state;
           }
           return { favorites: [...state.favorites, { productId, at: Date.now(), superlike }] };
-        }),
+        });
+      },
 
-      removeFavorite: (productId) =>
+      removeFavorite: (productId) => {
+        if (get().favorites.some((f) => f.productId === productId)) {
+          track('favorite_removed', { productId });
+        }
         set((state) => ({
           favorites: state.favorites.filter((f) => f.productId !== productId),
           collections: state.collections.map((c) => ({
             ...c,
             productIds: c.productIds.filter((id) => id !== productId),
           })),
-        })),
+        }));
+      },
 
       isFavorite: (productId) => get().favorites.some((f) => f.productId === productId),
 

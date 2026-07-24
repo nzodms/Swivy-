@@ -1,9 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, ErrorState, IconButton, LoadingState, ProductGridCard } from '@/components';
+import { track } from '@/features/analytics/track';
 import { compatibilityPercent } from '@/features/recommendations';
 import { useProduct, useSimilarProducts } from '@/hooks/useProducts';
 import { useFavoritesStore } from '@/stores/favoritesStore';
@@ -22,6 +24,10 @@ export default function SimilarScreen() {
   const favorites = useFavoritesStore((state) => state.favorites);
   const addFavorite = useFavoritesStore((state) => state.addFavorite);
   const removeFavorite = useFavoritesStore((state) => state.removeFavorite);
+
+  useEffect(() => {
+    if (id) track('similar_product_opened', { productId: id, screen: 'similar' });
+  }, [id]);
 
   if (isLoading) {
     return (

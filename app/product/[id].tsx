@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Heart, Ruler, Truck, X } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,6 +17,7 @@ import {
   Skeleton,
   StyleTag,
 } from '@/components';
+import { track } from '@/features/analytics/track';
 import { ImageGallery } from '@/features/products/ImageGallery';
 import { compatibilityPercent, explainRecommendation } from '@/features/recommendations';
 import { useProduct, useSimilarProducts } from '@/hooks/useProducts';
@@ -50,6 +51,18 @@ export default function ProductScreen() {
     [profile, product],
   );
 
+  useEffect(() => {
+    if (!product) return;
+    track('product_opened', {
+      productId: product.id,
+      score: compatibilityPercent(profile, product),
+      reason,
+      screen: 'product',
+    });
+    // Un seul événement par ouverture de fiche.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
+
   const toggleFavorite = () => {
     if (!product) return;
     if (isFavorite) {
@@ -63,6 +76,7 @@ export default function ProductScreen() {
 
   const openMerchant = () => {
     if (!product) return;
+    track('merchant_clicked', { productId: product.id, screen: 'product' });
     void WebBrowser.openBrowserAsync(product.url);
   };
 
