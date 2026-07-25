@@ -48,11 +48,11 @@ const styles = StyleSheet.create({
   },
   frame: {
     width: FRAME_WIDTH,
-    borderRadius: radius.xl,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     backgroundColor: colors.background,
     overflow: 'hidden',
-    ...shadows.floating,
+    ...shadows.sticky,
   },
 });

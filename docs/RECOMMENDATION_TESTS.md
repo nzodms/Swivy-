@@ -22,25 +22,25 @@ d’évaluation de 20 cartes est produit sur catalogue complet.
 
 | Persona | Swipes | Correspondance avant → après | Score moyen avant → après | Marque max /20 | Catégorie max | Styles distincts /20 |
 | --- | --- | --- | --- | --- | --- | --- |
-| Amateur de minimalisme | 40 | 55 % → 83 % | 63 % → 86 % | 5 | 25 % | 7 |
-| Amateur d’art déco | 40 | 15 % → 70 % | 63 % → 72 % | 5 | 30 % | 7 |
-| Amateur d’industriel | 40 | 0 % → 22 % | 63 % → 42 % | 5 | 25 % | 7 |
-| Amateur de formes organiques | 40 | 40 % → 73 % | 63 % → 87 % | 5 | 30 % | 6 |
-| Profil très large | 40 | n/a (pas de style cible) | 63 % → 95 % | 5 | 25 % | 8 |
-| Profil contradictoire | 40 | n/a (pas de style cible) | 63 % → 76 % | 5 | 45 % | 5 |
-| Peu de swipes | 5 | 22 % → 42 % | 63 % → 61 % | 4 | 40 % | 7 |
-| Beaucoup de swipes | 90 | 65 % → 90 % | 63 % → 88 % | 5 | 35 % | 6 |
+| Amateur de minimalisme | 40 | 50 % → 82 % | 63 % → 86 % | 5 | 30 % | 5 |
+| Amateur d’art déco | 40 | 15 % → 70 % | 63 % → 70 % | 5 | 35 % | 7 |
+| Amateur d’industriel | 40 | 5 % → 25 % | 63 % → 41 % | 5 | 25 % | 8 |
+| Amateur de formes organiques | 40 | 43 % → 75 % | 63 % → 84 % | 5 | 35 % | 6 |
+| Profil très large | 40 | n/a (pas de style cible) | 63 % → 93 % | 4 | 35 % | 6 |
+| Profil contradictoire | 40 | n/a (pas de style cible) | 63 % → 80 % | 5 | 35 % | 6 |
+| Peu de swipes | 5 | 23 % → 25 % | 63 % → 59 % | 5 | 40 % | 8 |
+| Beaucoup de swipes | 90 | 73 % → 90 % | 63 % → 89 % | 5 | 30 % | 6 |
 
 ## Poids de styles appris (top 3 par persona)
 
-- **Amateur de minimalisme** : minimaliste-chaleureux (29.0), scandinave (6.9), japandi (4.0)
-- **Amateur d’art déco** : vintage (21.5), art-deco (12.5), boheme (3.3)
-- **Amateur d’industriel** : industriel (6.0), vintage (0.6), art-deco (-2.8)
-- **Amateur de formes organiques** : organique (38.5), contemporain (16.6), scandinave (7.8)
-- **Profil très large** : contemporain (15.8), organique (12.8), minimaliste-chaleureux (10.3)
-- **Profil contradictoire** : organique (9.7), contemporain (6.5), boheme (2.4)
-- **Peu de swipes** : scandinave (1.0), organique (-0.1), minimaliste-chaleureux (-0.6)
-- **Beaucoup de swipes** : contemporain (42.0), organique (34.0), minimaliste-chaleureux (8.5)
+- **Amateur de minimalisme** : minimaliste-chaleureux (32.0), scandinave (10.8), organique (5.2)
+- **Amateur d’art déco** : vintage (20.5), art-deco (10.5), boheme (3.3)
+- **Amateur d’industriel** : industriel (6.0), vintage (1.1), japandi (-2.8)
+- **Amateur de formes organiques** : organique (32.5), contemporain (8.4), scandinave (4.2)
+- **Profil très large** : minimaliste-chaleureux (16.8), contemporain (9.3), organique (8.4)
+- **Profil contradictoire** : minimaliste-chaleureux (11.5), organique (4.8), contemporain (4.0)
+- **Peu de swipes** : contemporain (-0.6), vintage (-0.6), boheme (-1.1)
+- **Beaucoup de swipes** : contemporain (42.0), organique (34.0), minimaliste-chaleureux (8.0)
 
 ## Lecture des résultats
 

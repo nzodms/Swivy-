@@ -23,6 +23,10 @@ interface TasteState {
   swipes: SwipeRecord[];
   hiddenProductIds: string[];
   onboardingComplete: boolean;
+  /** Révélations déjà affichées (boucle d'engagement). */
+  shownReveals: string[];
+  /** Marques que l'utilisateur ne veut plus voir. */
+  hiddenBrands: string[];
   /** Instantanés de profil pour pouvoir annuler un swipe. */
   profileHistory: TasteProfile[];
 
@@ -33,6 +37,10 @@ interface TasteState {
   completeOnboarding: () => void;
   hideProduct: (productId: string) => void;
   unhideProduct: (productId: string) => void;
+  markRevealShown: (revealId: string) => void;
+  toggleBrandHidden: (brand: string) => void;
+  /** Atténue une préférence apprise (préférences modifiables du Profil). */
+  softenPreference: (dimension: 'styles' | 'materials' | 'colors', key: string) => void;
   resetAll: () => void;
 }
 
@@ -51,6 +59,8 @@ export const useTasteStore = create<TasteState>()(
       swipes: [],
       hiddenProductIds: [],
       onboardingComplete: false,
+      shownReveals: [],
+      hiddenBrands: [],
       profileHistory: [],
 
       recordSwipe: (product, action, source) => {
@@ -97,6 +107,29 @@ export const useTasteStore = create<TasteState>()(
           hiddenProductIds: state.hiddenProductIds.filter((id) => id !== productId),
         })),
 
+      markRevealShown: (revealId) =>
+        set((state) => ({
+          shownReveals: state.shownReveals.includes(revealId)
+            ? state.shownReveals
+            : [...state.shownReveals, revealId],
+        })),
+
+      toggleBrandHidden: (brand) =>
+        set((state) => ({
+          hiddenBrands: state.hiddenBrands.includes(brand)
+            ? state.hiddenBrands.filter((b) => b !== brand)
+            : [...state.hiddenBrands, brand],
+        })),
+
+      softenPreference: (dimension, key) =>
+        set((state) => {
+          const map = { ...state.profile[dimension] };
+          const current = map[key] ?? 0;
+          // Atténuation franche mais réversible : la préférence peut se reconstruire.
+          map[key] = current > 0 ? current * 0.35 : current;
+          return { profile: { ...state.profile, [dimension]: map } };
+        }),
+
       resetAll: () =>
         set({
           profile: emptyTasteProfile(),
@@ -104,18 +137,30 @@ export const useTasteStore = create<TasteState>()(
           swipes: [],
           hiddenProductIds: [],
           onboardingComplete: false,
+          shownReveals: [],
+          hiddenBrands: [],
           profileHistory: [],
         }),
     }),
     {
       name: 'swivy-taste',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: ({ profile, selections, swipes, hiddenProductIds, onboardingComplete }) => ({
+      partialize: ({
         profile,
         selections,
         swipes,
         hiddenProductIds,
         onboardingComplete,
+        shownReveals,
+        hiddenBrands,
+      }) => ({
+        profile,
+        selections,
+        swipes,
+        hiddenProductIds,
+        onboardingComplete,
+        shownReveals,
+        hiddenBrands,
       }),
     },
   ),

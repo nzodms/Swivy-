@@ -7,57 +7,76 @@ export const fontFamily = {
   semibold: 'Manrope_600SemiBold',
   bold: 'Manrope_700Bold',
   extrabold: 'Manrope_800ExtraBold',
+  /** Serif éditoriale — uniquement là où l'app « parle ». */
+  serif: 'Fraunces_500Medium',
+  serifStrong: 'Fraunces_600SemiBold',
 } as const;
 
 /**
- * Hiérarchie typographique.
- * Les titres sont forts mais jamais massifs ; interlignage aéré.
+ * Hiérarchie V2 — plus dense que la V1.
+ * La serif est réservée aux variantes editorial*.
  */
 export const typography = {
+  /** Voix éditoriale forte : welcome, résultat de profil, hero Pour toi. */
+  editorialTitle: {
+    fontFamily: fontFamily.serifStrong,
+    fontSize: 30,
+    lineHeight: 36,
+    letterSpacing: -0.4,
+    color: colors.textPrimary,
+  },
+  /** Voix éditoriale courante : révélations, nom produit en fiche. */
+  editorial: {
+    fontFamily: fontFamily.serif,
+    fontSize: 22,
+    lineHeight: 28,
+    letterSpacing: -0.2,
+    color: colors.textPrimary,
+  },
   display: {
     fontFamily: fontFamily.extrabold,
-    fontSize: 34,
-    lineHeight: 41,
-    letterSpacing: -0.8,
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: -0.6,
     color: colors.textPrimary,
   },
   title: {
-    fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.5,
+    fontFamily: fontFamily.extrabold,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: -0.4,
     color: colors.textPrimary,
   },
   heading: {
     fontFamily: fontFamily.bold,
-    fontSize: 21,
-    lineHeight: 27,
-    letterSpacing: -0.3,
+    fontSize: 18,
+    lineHeight: 24,
+    letterSpacing: -0.2,
     color: colors.textPrimary,
   },
   subheading: {
     fontFamily: fontFamily.semibold,
-    fontSize: 17,
-    lineHeight: 23,
-    letterSpacing: -0.2,
+    fontSize: 16,
+    lineHeight: 22,
+    letterSpacing: -0.1,
     color: colors.textPrimary,
   },
   body: {
     fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
     color: colors.textPrimary,
   },
   bodyMedium: {
     fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 22,
     color: colors.textPrimary,
   },
   bodySmall: {
     fontFamily: fontFamily.regular,
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 14,
+    lineHeight: 20,
     color: colors.textSecondary,
   },
   caption: {
@@ -68,8 +87,8 @@ export const typography = {
   },
   micro: {
     fontFamily: fontFamily.semibold,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 11,
+    lineHeight: 15,
     letterSpacing: 0.2,
     color: colors.textSecondary,
   },

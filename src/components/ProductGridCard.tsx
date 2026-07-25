@@ -11,29 +11,39 @@ import type { Product } from '@/types';
 interface ProductGridCardProps {
   product: Product;
   onPress: () => void;
+  onLongPress?: () => void;
   onToggleFavorite?: () => void;
   isFavorite?: boolean;
-  compatibilityPercent?: number;
   style?: ViewStyle;
 }
 
 const IMAGE_PLACEHOLDER = { blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' } as const;
 
-/** Carte produit compacte pour grilles et carrousels. */
+/**
+ * Carte produit compacte V2 — dense, sans pourcentage.
+ * Une baisse de prix est signalée en cuivre (donnée réelle du catalogue).
+ */
 export function ProductGridCard({
   product,
   onPress,
+  onLongPress,
   onToggleFavorite,
   isFavorite = false,
-  compatibilityPercent,
   style,
 }: ProductGridCardProps) {
   const haptics = useHaptics();
+  const discount =
+    product.previousPrice !== undefined && product.previousPrice > product.price
+      ? Math.round((1 - product.price / product.previousPrice) * 100)
+      : null;
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${product.name}, ${product.brand}, ${product.price} euros`}
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={450}
       style={({ pressed }) => [styles.card, pressed && styles.pressed, style]}
     >
       <View style={styles.imageWrap}>
@@ -41,14 +51,14 @@ export function ProductGridCard({
           source={{ uri: product.images[0] }}
           style={styles.image}
           contentFit="cover"
-          transition={200}
+          transition={180}
           placeholder={IMAGE_PLACEHOLDER}
           cachePolicy="memory-disk"
         />
-        {compatibilityPercent !== undefined ? (
-          <View style={styles.compatPill}>
-            <AppText variant="micro" style={styles.compatText}>
-              {compatibilityPercent} %
+        {discount !== null ? (
+          <View style={styles.discount}>
+            <AppText variant="micro" style={styles.discountText}>
+              −{discount} %
             </AppText>
           </View>
         ) : null}
@@ -64,19 +74,19 @@ export function ProductGridCard({
             style={styles.heart}
           >
             <Heart
-              size={16}
-              color={isFavorite ? colors.superlike : colors.textPrimary}
-              fill={isFavorite ? colors.superlike : 'transparent'}
+              size={15}
+              color={isFavorite ? colors.copper : colors.textPrimary}
+              fill={isFavorite ? colors.copper : 'transparent'}
               strokeWidth={2.2}
             />
           </Pressable>
         ) : null}
       </View>
       <View style={styles.info}>
-        <AppText variant="caption" numberOfLines={1} style={styles.brand}>
+        <AppText variant="micro" numberOfLines={1} style={styles.brand}>
           {product.brand}
         </AppText>
-        <AppText variant="bodyMedium" numberOfLines={1}>
+        <AppText variant="caption" numberOfLines={1} style={styles.name}>
           {product.name}
         </AppText>
         <ProductPrice price={product.price} previousPrice={product.previousPrice} variant="caption" />
@@ -87,51 +97,52 @@ export function ProductGridCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
   },
   pressed: {
-    opacity: 0.92,
+    opacity: 0.85,
   },
   imageWrap: {
-    borderRadius: radius.lg,
+    borderRadius: radius.sm,
     overflow: 'hidden',
-    aspectRatio: 0.82,
-    backgroundColor: colors.surfaceMuted,
+    aspectRatio: 0.85,
+    backgroundColor: colors.surface,
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  compatPill: {
+  discount: {
     position: 'absolute',
     top: spacing.xs,
     left: spacing.xs,
-    backgroundColor: colors.frost,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 3,
+    backgroundColor: colors.copper,
+    borderRadius: radius.xs,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
-  compatText: {
-    color: colors.textPrimary,
+  discountText: {
+    color: colors.textInverse,
   },
   heart: {
     position: 'absolute',
     top: spacing.xs,
     right: spacing.xs,
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
     borderRadius: radius.pill,
     backgroundColor: colors.frost,
     alignItems: 'center',
     justifyContent: 'center',
   },
   info: {
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.xs,
-    gap: 2,
+    paddingTop: 6,
+    gap: 1,
   },
   brand: {
     color: colors.textTertiary,
+  },
+  name: {
+    color: colors.textPrimary,
   },
 });

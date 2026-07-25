@@ -1,11 +1,12 @@
 import { useRouter } from 'expo-router';
 import { Compass, SlidersHorizontal } from 'lucide-react-native';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import {
-  AppHeader,
   AppScreen,
+  AppText,
   EmptyState,
   ErrorState,
   IconButton,
@@ -15,33 +16,69 @@ import { SwipeActionBar } from '@/features/discovery/SwipeActionBar';
 import { SwipeDeck, type SwipeDeckHandle } from '@/features/discovery/SwipeDeck';
 import { useSwipeDeck } from '@/features/discovery/useSwipeDeck';
 import { useTasteStore } from '@/stores/tasteStore';
-import { radius } from '@/theme';
+import { colors, motion, radius, spacing } from '@/theme';
+
+/** Nombre de signaux pour un profil considéré comme mûr. */
+const MATURE_SIGNALS = 60;
+
+/** Jauge de compréhension — fine, discrète, progresse par paliers réels. */
+function UnderstandingGauge() {
+  const signalCount = useTasteStore((state) => state.profile.signalCount);
+  const share = Math.min(1, signalCount / MATURE_SIGNALS);
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withSpring(share, motion.spring.enter);
+  }, [share, progress]);
+
+  const fillStyle = useAnimatedStyle(() => ({ width: `${Math.max(3, progress.value * 100)}%` }));
+
+  const label =
+    share >= 1
+      ? 'Profil mûr'
+      : share >= 0.5
+        ? 'Ton style se précise'
+        : share >= 0.15
+          ? 'Swivy apprend tes goûts'
+          : 'Swipe pour affiner ton style';
+
+  return (
+    <View accessibilityLabel={`Compréhension du style : ${Math.round(share * 100)} pour cent`}>
+      <AppText variant="caption">{label}</AppText>
+      <View style={styles.gaugeTrack}>
+        <Animated.View style={[styles.gaugeFill, fillStyle]} />
+      </View>
+    </View>
+  );
+}
 
 /** Écran principal : le feed de découverte par swipe. */
 export default function DiscoverScreen() {
   const router = useRouter();
   const deckRef = useRef<SwipeDeckHandle>(null);
-  const { deck, isLoading, isError, refetch, swipe, undo, canUndo, exhausted, compatibilityFor } =
-    useSwipeDeck();
+  const { items, isLoading, isError, refetch, swipe, undo, canUndo, exhausted } = useSwipeDeck();
   const resetAll = useTasteStore((state) => state.resetAll);
 
-  const topProduct = deck[0];
+  const topItem = items[0];
+  const topProductId = topItem?.kind === 'product' ? topItem.id : null;
 
   return (
     <AppScreen withBottomNav>
-      <AppHeader
-        title="Découvrir"
-        subtitle="Swipe pour affiner ton style"
-        trailing={
-          <IconButton
-            icon={SlidersHorizontal}
-            onPress={() => router.push('/modals/filters')}
-            accessibilityLabel="Ouvrir les filtres"
-            size={44}
-            iconSize={19}
-          />
-        }
-      />
+      <View style={styles.header}>
+        <View style={styles.headerText}>
+          <AppText variant="title" accessibilityRole="header">
+            Découvrir
+          </AppText>
+          <UnderstandingGauge />
+        </View>
+        <IconButton
+          icon={SlidersHorizontal}
+          onPress={() => router.push('/modals/filters')}
+          accessibilityLabel="Ouvrir les filtres"
+          size={42}
+          iconSize={18}
+        />
+      </View>
 
       <View style={styles.deckArea}>
         {isLoading ? (
@@ -66,10 +103,13 @@ export default function DiscoverScreen() {
         ) : (
           <SwipeDeck
             ref={deckRef}
-            products={deck}
-            compatibilityFor={compatibilityFor}
+            items={items}
             onSwipe={swipe}
-            onPressDetails={(product) => router.push({ pathname: '/product/[id]', params: { id: product.id } })}
+            onPressDetails={(item) => {
+              if (item.kind === 'product') {
+                router.push({ pathname: '/product/[id]', params: { id: item.id } });
+              }
+            }}
           />
         )}
       </View>
@@ -79,11 +119,11 @@ export default function DiscoverScreen() {
           undo();
         }}
         canUndo={canUndo}
-        disabled={!topProduct}
+        disabled={!topItem}
         onDislike={() => deckRef.current?.swipeTop('dislike')}
         onSimilar={() => {
-          if (topProduct) {
-            router.push({ pathname: '/similar/[id]', params: { id: topProduct.id } });
+          if (topProductId) {
+            router.push({ pathname: '/similar/[id]', params: { id: topProductId } });
           }
         }}
         onLike={() => deckRef.current?.swipeTop('like')}
@@ -95,6 +135,30 @@ export default function DiscoverScreen() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
+  },
+  headerText: {
+    flex: 1,
+    gap: 4,
+  },
+  gaugeTrack: {
+    height: 3,
+    borderRadius: radius.xs,
+    backgroundColor: colors.surfaceMuted,
+    overflow: 'hidden',
+    marginTop: 4,
+    maxWidth: 220,
+  },
+  gaugeFill: {
+    height: '100%',
+    borderRadius: radius.xs,
+    backgroundColor: colors.accent,
+  },
   deckArea: {
     flex: 1,
   },
@@ -102,6 +166,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navClearance: {
-    height: 84,
+    height: 76,
   },
 });

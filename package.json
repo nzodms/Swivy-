@@ -16,6 +16,7 @@
     "build:web": "expo export --platform web"
   },
   "dependencies": {
+    "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/manrope": "^0.4.1",
     "@expo/metro-runtime": "~6.1.2",
     "@hookform/resolvers": "^3.9.1",

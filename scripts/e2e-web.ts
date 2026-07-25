@@ -168,10 +168,10 @@ async function run(): Promise<void> {
   if (await tapLabel(page, 'Voir la fiche produit')) {
     await page.waitForTimeout(1200);
     await shot(page, 'product');
-    if ((await page.getByText('Pourquoi ce produit').count()) === 0) {
-      fail('Bloc "Pourquoi ce produit" absent de la fiche');
+    if ((await page.getByText(/% pour ton style/).count()) === 0) {
+      fail('Score détaillé absent de la fiche produit');
     } else {
-      ok('fiche produit ouverte avec raisons');
+      ok('fiche produit ouverte avec score détaillé');
     }
     if (!(await tapLabel(page, 'Fermer la fiche produit'))) fail('Fermeture fiche impossible');
     await page.waitForTimeout(700);
@@ -200,7 +200,7 @@ async function run(): Promise<void> {
   await page.getByRole('tab', { name: 'Favoris' }).first().click();
   await page.waitForTimeout(900);
   await shot(page, 'favorites');
-  if ((await page.getByText(/produit(s)? sauvegardé/).count()) === 0) {
+  if ((await page.getByText(/\d+ produits?/).count()) === 0) {
     fail('Favoris : compteur absent (les likes n’ont pas été sauvegardés ?)');
   } else {
     ok('favoris peuplés par les swipes');
@@ -218,7 +218,7 @@ async function run(): Promise<void> {
   await page.getByRole('tab', { name: 'Profil' }).first().click();
   await page.waitForTimeout(900);
   await shot(page, 'profile');
-  if ((await page.getByText('Ton ADN esthétique').count()) === 0) fail('Profil : ADN absent');
+  if ((await page.getByText('Ton spectre de goût').count()) === 0) fail('Profil : spectre absent');
   else ok('profil affiché');
 
   // ————————————————————————————————————————————
@@ -228,7 +228,7 @@ async function run(): Promise<void> {
   await page.goto(`${BASE_URL}/favorites`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1800);
   await shot(page, 'reload-favorites');
-  if ((await page.getByText(/produit(s)? sauvegardé/).count()) === 0) {
+  if ((await page.getByText(/\d+ produits?/).count()) === 0) {
     fail('Persistance : favoris perdus après rechargement');
   } else {
     ok('favoris persistés après rechargement (route profonde OK)');
@@ -239,9 +239,32 @@ async function run(): Promise<void> {
   }
 
   // ————————————————————————————————————————————
+  // Scénario : utilisateur qui swipe très vite
+  // ————————————————————————————————————————————
+  process.stdout.write('7. Swipe rapide (robustesse)\n');
+  await page.getByRole('tab', { name: 'Découvrir' }).first().click();
+  await page.waitForTimeout(800);
+  let fastFailures = 0;
+  for (let i = 0; i < 15; i += 1) {
+    const label = i % 2 === 0 ? 'J’aime' : 'Pas pour moi';
+    if (!(await tapLabel(page, label))) fastFailures += 1;
+    // Cadence rapide, sous la durée de sortie d'une carte.
+    await page.waitForTimeout(140);
+  }
+  await page.waitForTimeout(900);
+  const deckStillAlive =
+    (await page.getByLabel('J’aime').count()) > 0 || (await page.getByText('Tu as tout vu').count()) > 0;
+  if (fastFailures > 2 || !deckStillAlive) {
+    fail(`Swipe rapide : ${fastFailures} actions perdues, deck vivant=${String(deckStillAlive)}`);
+  } else {
+    ok(`15 swipes rapides encaissés (${fastFailures} action(s) ignorée(s) pendant les sorties)`);
+  }
+  await shot(page, 'fast-swipe');
+
+  // ————————————————————————————————————————————
   // Autres tailles d'écran
   // ————————————————————————————————————————————
-  process.stdout.write('7. Tailles d’écran\n');
+  process.stdout.write('8. Tailles d’écran\n');
   const viewports = [
     { name: 'small-iphone', width: 375, height: 667 },
     { name: 'large-iphone', width: 430, height: 932 },

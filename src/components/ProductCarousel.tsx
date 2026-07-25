@@ -10,29 +10,18 @@ interface ProductCarouselProps {
   subtitle?: string;
   products: Product[];
   onProductPress: (product: Product) => void;
-  compatibilityFor?: (product: Product) => number;
 }
 
-const CARD_WIDTH = 168;
+const CARD_WIDTH = 150;
 
-/** Carrousel horizontal éditorial (écran "Pour toi"). */
-export function ProductCarousel({
-  title,
-  subtitle,
-  products,
-  onProductPress,
-  compatibilityFor,
-}: ProductCarouselProps) {
+/** Carrousel horizontal éditorial. */
+export function ProductCarousel({ title, subtitle, products, onProductPress }: ProductCarouselProps) {
   if (products.length === 0) return null;
   return (
     <View style={styles.section}>
       <View style={styles.header}>
         <AppText variant="heading">{title}</AppText>
-        {subtitle ? (
-          <AppText variant="caption" style={styles.subtitle}>
-            {subtitle}
-          </AppText>
-        ) : null}
+        {subtitle ? <AppText variant="caption">{subtitle}</AppText> : null}
       </View>
       <ScrollView
         horizontal
@@ -46,7 +35,6 @@ export function ProductCarousel({
             key={product.id}
             product={product}
             onPress={() => onProductPress(product)}
-            compatibilityPercent={compatibilityFor?.(product)}
             style={styles.card}
           />
         ))}
@@ -63,7 +51,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: screenPadding,
     gap: 2,
   },
-  subtitle: {},
   scroll: {
     paddingHorizontal: screenPadding,
     gap: spacing.sm,

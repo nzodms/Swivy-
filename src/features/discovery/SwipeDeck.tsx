@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,17 +12,19 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { ProductSwipeCard } from './ProductSwipeCard';
+import { RevealCard } from './RevealCard';
 import { SwipeBadge } from './SwipeBadge';
+import { useHaptics } from '@/hooks/useHaptics';
 import { motion } from '@/theme';
-import type { Product, SwipeAction } from '@/types';
+import type { SwipeAction } from '@/types';
+import type { DeckItem } from './deckTypes';
 
 interface SwipeDeckProps {
-  /** Cartes à afficher, la première est au sommet. */
-  products: Product[];
-  compatibilityFor: (product: Product) => number;
-  onSwipe: (product: Product, action: SwipeAction) => void;
+  /** Éléments à afficher, le premier est au sommet. */
+  items: DeckItem[];
+  onSwipe: (item: DeckItem, action: SwipeAction) => void;
   /** Absent = bouton info masqué sur les cartes (mode calibration). */
-  onPressDetails?: (product: Product) => void;
+  onPressDetails?: (item: DeckItem) => void;
 }
 
 export interface SwipeDeckHandle {
@@ -31,37 +33,49 @@ export interface SwipeDeckHandle {
 }
 
 const VISIBLE_CARDS = 3;
-const EXIT_DURATION = 260;
 
 /**
- * Pile de cartes swipables.
- * Geste physique crédible : translation + rotation légère,
- * badges de feedback, carte suivante déjà visible derrière.
+ * Pile de cartes swipables V2.
+ * Geste calibré (docs/MOTION_SYSTEM.md) : résistance verticale, haptique au
+ * franchissement du seuil, arrivée en ressort de chaque nouvelle carte.
  */
 export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function SwipeDeck(
-  { products, compatibilityFor, onSwipe, onPressDetails },
+  { items, onSwipe, onPressDetails },
   ref,
 ) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const haptics = useHaptics();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const isAnimatingOut = useSharedValue(false);
+  const thresholdCrossed = useSharedValue(false);
+  /** Progression d'entrée de la carte du dessus (0 → 1). */
+  const enterProgress = useSharedValue(1);
 
-  const topProduct = products[0];
+  const topItem = items[0];
+
+  // Arrivée en ressort de chaque nouvelle carte du dessus.
+  const topItemId = topItem?.id;
+  useEffect(() => {
+    if (!topItemId) return;
+    enterProgress.value = 0;
+    enterProgress.value = withSpring(1, motion.spring.enter);
+  }, [topItemId, enterProgress]);
 
   const likeProgress = useDerivedValue(() => translateX.value / motion.swipeThreshold);
   const dislikeProgress = useDerivedValue(() => -translateX.value / motion.swipeThreshold);
   const superlikeProgress = useDerivedValue(() =>
     translateY.value < 0 && Math.abs(translateY.value) > Math.abs(translateX.value)
-      ? -translateY.value / (motion.swipeThreshold * 1.15)
+      ? -translateY.value / motion.swipeUpThreshold
       : 0,
   );
 
   const commitSwipe = (action: SwipeAction) => {
-    if (topProduct) onSwipe(topProduct, action);
+    if (topItem) onSwipe(topItem, action);
     translateX.value = 0;
     translateY.value = 0;
     isAnimatingOut.value = false;
+    thresholdCrossed.value = false;
   };
 
   const animateOut = (action: SwipeAction) => {
@@ -70,8 +84,8 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
     isAnimatingOut.value = true;
     const targetX = action === 'like' ? screenWidth * 1.3 : action === 'dislike' ? -screenWidth * 1.3 : 0;
     const targetY = action === 'superlike' ? -screenHeight : translateY.value * 0.4;
-    translateX.value = withTiming(targetX, { duration: EXIT_DURATION });
-    translateY.value = withTiming(targetY, { duration: EXIT_DURATION }, (finished) => {
+    translateX.value = withTiming(targetX, { duration: motion.swipeExitDuration });
+    translateY.value = withTiming(targetY, { duration: motion.swipeExitDuration }, (finished) => {
       if (finished) runOnJS(commitSwipe)(action);
     });
   };
@@ -86,21 +100,35 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
     },
   }));
 
+  const notifyThreshold = () => {
+    haptics.selection();
+  };
+
   const pan = Gesture.Pan()
-    .enabled(topProduct !== undefined)
+    .enabled(topItem !== undefined)
     .onChange((event) => {
       if (isAnimatingOut.value) return;
       translateX.value += event.changeX;
-      translateY.value += event.changeY;
+      // Résistance verticale : le superlike se mérite.
+      translateY.value += event.changeY * 0.9;
+
+      const overH = Math.abs(translateX.value) > motion.swipeThreshold;
+      const overV = -translateY.value > motion.swipeUpThreshold;
+      if ((overH || overV) && !thresholdCrossed.value) {
+        thresholdCrossed.value = true;
+        runOnJS(notifyThreshold)();
+      } else if (!overH && !overV && thresholdCrossed.value) {
+        thresholdCrossed.value = false;
+      }
     })
     .onEnd((event) => {
       if (isAnimatingOut.value) return;
-      const { swipeThreshold, swipeVelocityThreshold } = motion;
       const upIntent =
-        translateY.value < -swipeThreshold * 1.15 || event.velocityY < -swipeVelocityThreshold;
+        -translateY.value > motion.swipeUpThreshold ||
+        event.velocityY < -motion.swipeVelocityThreshold;
       const horizontalIntent =
-        Math.abs(translateX.value) > swipeThreshold ||
-        Math.abs(event.velocityX) > swipeVelocityThreshold;
+        Math.abs(translateX.value) > motion.swipeThreshold ||
+        Math.abs(event.velocityX) > motion.swipeVelocityThreshold;
 
       if (upIntent && Math.abs(translateY.value) > Math.abs(translateX.value)) {
         animateOut('superlike');
@@ -109,14 +137,16 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
       } else {
         translateX.value = withSpring(0, motion.spring.settle);
         translateY.value = withSpring(0, motion.spring.settle);
+        thresholdCrossed.value = false;
       }
     });
 
   const topCardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
-      { translateY: translateY.value },
-      { rotate: `${interpolate(translateX.value, [-screenWidth, 0, screenWidth], [-11, 0, 11])}deg` },
+      { translateY: translateY.value + interpolate(enterProgress.value, [0, 1], [10, 0]) },
+      { rotate: `${interpolate(translateX.value, [-screenWidth, 0, screenWidth], [-10, 0, 10])}deg` },
+      { scale: interpolate(enterProgress.value, [0, 1], [0.965, 1]) },
     ],
   }));
 
@@ -127,33 +157,44 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
     );
     return {
       transform: [
-        { scale: interpolate(drag, [0, 1], [0.95, 1]) },
-        { translateY: interpolate(drag, [0, 1], [14, 0]) },
+        { scale: interpolate(drag, [0, 1], [0.955, 1]) },
+        { translateY: interpolate(drag, [0, 1], [12, 0]) },
       ],
-      opacity: interpolate(drag, [0, 1], [0.9, 1]),
+      opacity: interpolate(drag, [0, 1], [0.92, 1]),
     };
   });
 
   const thirdCardStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 0.9 }, { translateY: 26 }],
-    opacity: 0.55,
+    transform: [{ scale: 0.91 }, { translateY: 22 }],
+    opacity: 0.4,
   }));
 
-  const visible = products.slice(0, VISIBLE_CARDS);
+  const renderCard = (item: DeckItem, isTop: boolean) => {
+    if (item.kind === 'reveal') {
+      return <RevealCard reveal={item.reveal} />;
+    }
+    return (
+      <ProductSwipeCard
+        product={item.product}
+        presentation={item.presentation}
+        signal={item.signal}
+        isTop={isTop}
+        onPressDetails={isTop && onPressDetails ? () => onPressDetails(item) : undefined}
+      />
+    );
+  };
+
+  const visible = items.slice(0, VISIBLE_CARDS);
 
   return (
     <View style={styles.stack}>
       {visible
-        .map((product, index) => {
+        .map((item, index) => {
           if (index === 0) {
             return (
-              <GestureDetector key={product.id} gesture={pan}>
+              <GestureDetector key={item.id} gesture={pan}>
                 <Animated.View style={[styles.cardWrapper, topCardStyle]}>
-                  <ProductSwipeCard
-                    product={product}
-                    compatibilityPercent={compatibilityFor(product)}
-                    onPressDetails={onPressDetails ? () => onPressDetails(product) : undefined}
-                  />
+                  {renderCard(item, true)}
                   <SwipeBadge kind="like" progress={likeProgress} />
                   <SwipeBadge kind="dislike" progress={dislikeProgress} />
                   <SwipeBadge kind="superlike" progress={superlikeProgress} />
@@ -163,7 +204,7 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
           }
           return (
             <Animated.View
-              key={product.id}
+              key={item.id}
               pointerEvents="none"
               // Les cartes d'arrière-plan sont invisibles pour l'accessibilité
               // (VoiceOver / TalkBack ne doivent lire que la carte du dessus).
@@ -172,10 +213,7 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, SwipeDeckProps>(function Sw
               importantForAccessibility="no-hide-descendants"
               style={[styles.cardWrapper, index === 1 ? nextCardStyle : thirdCardStyle]}
             >
-              <ProductSwipeCard
-                product={product}
-                compatibilityPercent={compatibilityFor(product)}
-              />
+              {renderCard(item, false)}
             </Animated.View>
           );
         })

@@ -26,7 +26,7 @@ export default function WelcomeScreen() {
     <AppScreen>
       <View style={styles.hero}>
         <Animated.View entering={FadeInDown.delay(80).duration(400)}>
-          <AppText variant="heading" style={styles.wordmark}>
+          <AppText variant="editorial" style={styles.wordmark}>
             Swivy
           </AppText>
         </Animated.View>
@@ -63,7 +63,7 @@ export default function WelcomeScreen() {
         </View>
 
         <Animated.View entering={FadeInDown.delay(450).duration(400)} style={styles.copy}>
-          <AppText variant="display" align="center">
+          <AppText variant="editorialTitle" align="center">
             Les produits qui correspondent vraiment à ton style.
           </AppText>
           <AppText variant="bodySmall" align="center" style={styles.tagline}>
@@ -111,9 +111,9 @@ const styles = StyleSheet.create({
   },
   previewCard: {
     position: 'absolute',
-    width: 150,
-    height: 210,
-    borderRadius: radius.lg,
+    width: 140,
+    height: 196,
+    borderRadius: radius.md,
     overflow: 'hidden',
     backgroundColor: colors.surfaceMuted,
     borderWidth: 4,

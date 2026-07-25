@@ -5,7 +5,7 @@ import { AppText } from './AppText';
 import { useHaptics } from '@/hooks/useHaptics';
 import { colors, minTouchTarget, motion, opacity, radius, spacing } from '@/theme';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'accent';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'copper';
 
 interface AppButtonProps {
   label: string;
@@ -13,19 +13,25 @@ interface AppButtonProps {
   variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
+  /** Bouton compact (44 px) pour les contextes denses. */
+  compact?: boolean;
   style?: ViewStyle;
   accessibilityHint?: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-/** Bouton principal de l'application, avec micro-réaction à la pression. */
+/**
+ * Bouton V2 — rectangle adouci (rayon 14), marque cyprès pour
+ * l'action prioritaire. Un seul bouton primaire par écran.
+ */
 export function AppButton({
   label,
   onPress,
   variant = 'primary',
   disabled = false,
   loading = false,
+  compact = false,
   style,
   accessibilityHint,
 }: AppButtonProps) {
@@ -35,7 +41,7 @@ export function AppButton({
   const isInactive = disabled || loading;
 
   const textColor =
-    variant === 'primary' ? 'textInverse' : variant === 'accent' ? 'textInverse' : 'textPrimary';
+    variant === 'primary' || variant === 'copper' ? 'textInverse' : 'textPrimary';
 
   return (
     <AnimatedPressable
@@ -45,7 +51,7 @@ export function AppButton({
       accessibilityState={{ disabled: isInactive, busy: loading }}
       disabled={isInactive}
       onPressIn={() => {
-        scale.value = withSpring(0.97, motion.spring.press);
+        scale.value = withSpring(motion.pressScale.button, motion.spring.press);
       }}
       onPressOut={() => {
         scale.value = withSpring(1, motion.spring.press);
@@ -54,12 +60,21 @@ export function AppButton({
         haptics.light();
         onPress();
       }}
-      style={[styles.base, styles[variant], isInactive && styles.disabled, animatedStyle, style]}
+      style={[
+        styles.base,
+        compact && styles.compact,
+        styles[variant],
+        isInactive && styles.disabled,
+        animatedStyle,
+        style,
+      ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' || variant === 'accent' ? colors.textInverse : colors.textPrimary} />
+        <ActivityIndicator
+          color={variant === 'primary' || variant === 'copper' ? colors.textInverse : colors.textPrimary}
+        />
       ) : (
-        <AppText variant="bodyMedium" color={textColor} style={styles.label}>
+        <AppText variant="subheading" color={textColor}>
           {label}
         </AppText>
       )}
@@ -69,31 +84,32 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: Math.max(52, minTouchTarget),
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.xl,
+    minHeight: Math.max(50, minTouchTarget),
+    borderRadius: radius.button,
+    paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
   },
-  primary: {
-    backgroundColor: colors.textPrimary,
+  compact: {
+    minHeight: minTouchTarget,
+    paddingHorizontal: spacing.md,
   },
-  accent: {
+  primary: {
     backgroundColor: colors.accent,
   },
+  copper: {
+    backgroundColor: colors.copper,
+  },
   secondary: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   ghost: {
     backgroundColor: 'transparent',
   },
   disabled: {
     opacity: opacity.disabled,
-  },
-  label: {
-    fontSize: 16,
   },
 });

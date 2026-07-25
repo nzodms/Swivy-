@@ -1,13 +1,12 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { BlurView } from 'expo-blur';
 import { Compass, Heart, Sparkles, UserRound, type LucideIcon } from 'lucide-react-native';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText } from './AppText';
 import { useHaptics } from '@/hooks/useHaptics';
-import { colors, motion, radius, shadows, spacing, zIndex } from '@/theme';
+import { colors, motion, radius, spacing, zIndex } from '@/theme';
 
 const TAB_CONFIG: Record<string, { label: string; icon: LucideIcon }> = {
   index: { label: 'Découvrir', icon: Compass },
@@ -29,7 +28,11 @@ function TabItem({
 }) {
   const haptics = useHaptics();
   const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const iconStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const dotStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(focused ? 1 : 0, { duration: motion.duration.fast }),
+    transform: [{ scale: withSpring(focused ? 1 : 0.4, motion.spring.enter) }],
+  }));
 
   return (
     <Pressable
@@ -37,7 +40,7 @@ function TabItem({
       accessibilityLabel={label}
       accessibilityState={{ selected: focused }}
       onPressIn={() => {
-        scale.value = withSpring(0.94, motion.spring.press);
+        scale.value = withSpring(motion.pressScale.icon, motion.spring.press);
       }}
       onPressOut={() => {
         scale.value = withSpring(1, motion.spring.press);
@@ -48,104 +51,91 @@ function TabItem({
       }}
       style={styles.tab}
     >
-      <Animated.View style={[styles.tabInner, focused && styles.tabInnerActive, animatedStyle]}>
+      <Animated.View style={[styles.iconWrap, iconStyle]}>
         <Icon
-          size={21}
-          color={focused ? colors.accentDeep : colors.textSecondary}
-          strokeWidth={focused ? 2.4 : 2}
+          size={22}
+          color={focused ? colors.accent : colors.textTertiary}
+          strokeWidth={focused ? 2.4 : 1.9}
+          fill={focused && Icon === Heart ? colors.accent : 'transparent'}
         />
-        <AppText variant="micro" style={focused ? styles.labelActive : styles.label}>
-          {label}
-        </AppText>
       </Animated.View>
+      <AppText variant="micro" style={focused ? styles.labelActive : styles.label}>
+        {label}
+      </AppText>
+      <Animated.View style={[styles.dot, dotStyle]} />
     </Pressable>
   );
 }
 
 /**
- * Bottom navigation flottante : pilule givrée, quatre onglets,
- * état actif souligné en sauge.
+ * Navigation V2 : barre pleine largeur, hairline supérieure, état actif
+ * par teinte + point — compacte, stable, sans effet « glass ».
  */
 export function BottomNavigation({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}
-      pointerEvents="box-none"
-    >
-      <View style={styles.barShadow}>
-        <BlurView intensity={Platform.OS === 'ios' ? 40 : 0} tint="light" style={styles.bar}>
-          {state.routes.map((route, index) => {
-            const config = TAB_CONFIG[route.name];
-            if (!config) return null;
-            const focused = state.index === index;
-            return (
-              <TabItem
-                key={route.key}
-                label={config.label}
-                icon={config.icon}
-                focused={focused}
-                onPress={() => {
-                  const event = navigation.emit({
-                    type: 'tabPress',
-                    target: route.key,
-                    canPreventDefault: true,
-                  });
-                  if (!focused && !event.defaultPrevented) {
-                    navigation.navigate(route.name);
-                  }
-                }}
-              />
-            );
-          })}
-        </BlurView>
-      </View>
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, spacing.xs) }]}>
+      {state.routes.map((route, index) => {
+        const config = TAB_CONFIG[route.name];
+        if (!config) return null;
+        const focused = state.index === index;
+        return (
+          <TabItem
+            key={route.key}
+            label={config.label}
+            icon={config.icon}
+            focused={focused}
+            onPress={() => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
+              if (!focused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            }}
+          />
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  bar: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    alignItems: 'center',
+    flexDirection: 'row',
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.xs,
     zIndex: zIndex.bottomNav,
   },
-  barShadow: {
-    borderRadius: radius.pill,
-    ...shadows.floating,
-  },
-  bar: {
-    flexDirection: 'row',
-    borderRadius: radius.pill,
-    backgroundColor: Platform.OS === 'ios' ? 'rgba(255,255,255,0.72)' : colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 6,
-  },
   tab: {
-    minWidth: 76,
-  },
-  tabInner: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.xs,
-    borderRadius: radius.pill,
+    gap: 2,
+    paddingVertical: 2,
   },
-  tabInnerActive: {
-    backgroundColor: colors.accentSoft,
+  iconWrap: {
+    height: 26,
+    justifyContent: 'center',
   },
   label: {
-    color: colors.textSecondary,
+    color: colors.textTertiary,
   },
   labelActive: {
-    color: colors.accentDeep,
+    color: colors.accent,
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
   },
 });

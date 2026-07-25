@@ -17,9 +17,8 @@ interface SwipeActionBarProps {
 }
 
 /**
- * Actions sous la carte — interprétation Swivy, volontairement
- * éloignée des codes visuels de Tinder : boutons sobres, hiérarchie
- * par la taille, accent porté sur like et coup de cœur.
+ * Actions sous la carte V2 — hiérarchie par la taille :
+ * like (marque, plein) et dislike (graphite) en 56, le reste en 42.
  */
 export function SwipeActionBar({
   onUndo,
@@ -37,8 +36,8 @@ export function SwipeActionBar({
           icon={RotateCcw}
           onPress={onUndo}
           accessibilityLabel="Annuler le dernier swipe"
-          size={46}
-          iconSize={19}
+          size={42}
+          iconSize={17}
           color={colors.textSecondary}
           disabled={!canUndo}
         />
@@ -47,19 +46,18 @@ export function SwipeActionBar({
         icon={X}
         onPress={onDislike}
         accessibilityLabel="Pas pour moi"
-        size={58}
-        iconSize={26}
+        size={56}
+        iconSize={24}
         color={colors.dislike}
         disabled={disabled}
-        elevated
       />
       {onSimilar ? (
         <IconButton
           icon={Layers}
           onPress={onSimilar}
           accessibilityLabel="Voir des produits similaires"
-          size={46}
-          iconSize={19}
+          size={42}
+          iconSize={17}
           color={colors.textSecondary}
           disabled={disabled}
         />
@@ -68,21 +66,20 @@ export function SwipeActionBar({
         icon={Heart}
         onPress={onLike}
         accessibilityLabel="J’aime"
-        size={58}
-        iconSize={26}
+        size={56}
+        iconSize={24}
         color={colors.textInverse}
-        backgroundColor={colors.like}
+        backgroundColor={colors.accent}
         bordered={false}
         disabled={disabled}
-        elevated
       />
       <IconButton
         icon={Sparkles}
         onPress={onSuperlike}
         accessibilityLabel="Coup de cœur"
-        size={46}
-        iconSize={20}
-        color={colors.superlike}
+        size={42}
+        iconSize={18}
+        color={colors.copper}
         disabled={disabled}
       />
     </View>
@@ -94,7 +91,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.md,
-    paddingVertical: spacing.sm,
+    gap: spacing.lg,
+    paddingVertical: spacing.xs,
   },
 });

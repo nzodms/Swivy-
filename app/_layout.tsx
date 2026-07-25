@@ -1,3 +1,4 @@
+import { Fraunces_500Medium, Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
 import {
   Manrope_400Regular,
   Manrope_500Medium,
@@ -39,6 +40,8 @@ export default function RootLayout() {
     Manrope_600SemiBold,
     Manrope_700Bold,
     Manrope_800ExtraBold,
+    Fraunces_500Medium,
+    Fraunces_600SemiBold,
   });
   const storesHydrated = useStoresHydrated();
   const ready = fontsLoaded && storesHydrated;

@@ -25,7 +25,7 @@ export default function RoomsScreen() {
       totalSteps={4}
       title="Quelles pièces veux-tu transformer ?"
       subtitle="Sélectionne autant de pièces que tu veux."
-      ctaLabel="Continuer"
+      ctaLabel={rooms.length > 0 ? `Continuer · ${rooms.length}` : 'Continuer'}
       ctaDisabled={rooms.length === 0}
       onCta={() => router.push('/(onboarding)/categories')}
       onBack={() => router.back()}

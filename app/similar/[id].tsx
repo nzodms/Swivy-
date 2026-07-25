@@ -6,10 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, ErrorState, IconButton, LoadingState, ProductGridCard } from '@/components';
 import { track } from '@/features/analytics/track';
-import { compatibilityPercent } from '@/features/recommendations';
 import { useProduct, useSimilarProducts } from '@/hooks/useProducts';
 import { useFavoritesStore } from '@/stores/favoritesStore';
-import { useTasteStore } from '@/stores/tasteStore';
 import { colors, screenPadding, spacing } from '@/theme';
 
 /** "Plus de produits comme celui-ci" — grille de similaires. */
@@ -20,7 +18,6 @@ export default function SimilarScreen() {
 
   const { data: product, isLoading, isError, refetch } = useProduct(id);
   const similar = useSimilarProducts(product, 12);
-  const profile = useTasteStore((state) => state.profile);
   const favorites = useFavoritesStore((state) => state.favorites);
   const addFavorite = useFavoritesStore((state) => state.addFavorite);
   const removeFavorite = useFavoritesStore((state) => state.removeFavorite);
@@ -77,7 +74,6 @@ export default function SimilarScreen() {
               onPress={() => router.push({ pathname: '/product/[id]', params: { id: item.id } })}
               isFavorite={isFavorite}
               onToggleFavorite={() => (isFavorite ? removeFavorite(item.id) : addFavorite(item.id))}
-              compatibilityPercent={compatibilityPercent(profile, item)}
               style={styles.gridCard}
             />
           );

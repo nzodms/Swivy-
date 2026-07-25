@@ -86,10 +86,17 @@ function takeFrom(
   return null;
 }
 
+export interface DeckEntry {
+  product: Product;
+  /** Tranche du mélange d'exploration dont la carte est issue. */
+  tier: 'top' | 'mid' | 'wild';
+}
+
 /**
- * Construit un deck ordonné de `count` produits jamais vus.
+ * Construit un deck ordonné de `count` produits jamais vus,
+ * avec la tranche d'exploration de chaque carte.
  */
-export function buildDeck(options: DeckOptions): Product[] {
+export function buildDeckDetailed(options: DeckOptions): DeckEntry[] {
   const { catalog, profile, selections, seenIds, count } = options;
 
   const pool: ScoredProduct[] = catalog
@@ -116,6 +123,7 @@ export function buildDeck(options: DeckOptions): Product[] {
 
   const picked: Product[] = [];
   const pickedIds = new Set<string>();
+  const entries: DeckEntry[] = [];
 
   for (let i = 0; picked.length < count; i += 1) {
     const wanted = TIER_PATTERN[i % TIER_PATTERN.length] ?? 'top';
@@ -123,16 +131,26 @@ export function buildDeck(options: DeckOptions): Product[] {
       wanted === 'top' ? ['top', 'mid', 'wild'] : wanted === 'mid' ? ['mid', 'top', 'wild'] : ['wild', 'mid', 'top'];
 
     let product: Product | null = null;
+    let sourceTier: 'top' | 'mid' | 'wild' = wanted;
     for (const tierName of order) {
       product = takeFrom(tiers[tierName], picked, pickedIds, count);
-      if (product) break;
+      if (product) {
+        sourceTier = tierName;
+        break;
+      }
     }
     if (!product) break; // catalogue épuisé
     picked.push(product);
     pickedIds.add(product.id);
+    entries.push({ product, tier: sourceTier });
   }
 
-  return picked;
+  return entries;
+}
+
+/** Deck simple (produits seuls) — utilisé par les simulations et Pour toi. */
+export function buildDeck(options: DeckOptions): Product[] {
+  return buildDeckDetailed(options).map((entry) => entry.product);
 }
 
 /**

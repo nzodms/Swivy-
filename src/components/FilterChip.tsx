@@ -2,7 +2,7 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { AppText } from './AppText';
 import { useHaptics } from '@/hooks/useHaptics';
-import { colors, minTouchTarget, radius, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 interface FilterChipProps {
   label: string;
@@ -10,7 +10,7 @@ interface FilterChipProps {
   onPress: () => void;
 }
 
-/** Puce de filtre / sélection — état actif sauge, jamais criard. */
+/** Chip de filtre V2 — rayon 10, sélection cyprès, hauteur 34. */
 export function FilterChip({ label, selected, onPress }: FilterChipProps) {
   const haptics = useHaptics();
   return (
@@ -18,17 +18,14 @@ export function FilterChip({ label, selected, onPress }: FilterChipProps) {
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected }}
-      hitSlop={6}
+      hitSlop={8}
       onPress={() => {
         haptics.selection();
         onPress();
       }}
-      style={[styles.base, selected && styles.selected]}
+      style={({ pressed }) => [styles.base, selected && styles.selected, pressed && styles.pressed]}
     >
-      <AppText
-        variant="caption"
-        style={[styles.label, selected && styles.labelSelected]}
-      >
+      <AppText variant="caption" style={selected ? styles.labelSelected : styles.label}>
         {label}
       </AppText>
     </Pressable>
@@ -37,18 +34,21 @@ export function FilterChip({ label, selected, onPress }: FilterChipProps) {
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: Math.max(36, minTouchTarget - 8),
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
+    height: 34,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.chip,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   selected: {
     backgroundColor: colors.accentSoft,
     borderColor: colors.accent,
+  },
+  pressed: {
+    backgroundColor: colors.surfaceMuted,
   },
   label: {
     color: colors.textSecondary,

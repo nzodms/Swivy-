@@ -1,46 +1,50 @@
 /**
- * Palette Swivy — claire, chaleureuse, premium.
- * Accent : sauge minérale. Jamais de couleurs criardes.
+ * Palette Swivy V2 — blanc net, graphite, vert cyprès signature,
+ * cuivre réservé aux moments spéciaux. Voir docs/VISUAL_DIRECTION_V2.md.
  */
 export const colors = {
   // Fonds
   background: '#FFFFFF',
-  backgroundSubtle: '#F7F7F5',
-  surface: '#FFFFFF',
-  surfaceMuted: '#F2F2EF',
+  backgroundSubtle: '#F6F6F4',
+  surface: '#F6F6F4',
+  surfaceMuted: '#ECECEA',
 
-  // Texte
-  textPrimary: '#151515',
-  textSecondary: '#737373',
-  textTertiary: '#A6A6A2',
+  // Texte (graphite)
+  textPrimary: '#1C1C1E',
+  textSecondary: '#66666B',
+  textTertiary: '#9C9CA1',
   textInverse: '#FFFFFF',
 
   // Bordures
-  border: '#E8E8E5',
-  borderStrong: '#DBDBD6',
+  border: '#E5E5E2',
+  borderStrong: '#D6D6D2',
 
-  // Accent principal — sauge
-  accent: '#71805C',
-  accentDeep: '#59674A',
-  accentSoft: '#EEF1E8',
+  // Marque — vert cyprès
+  accent: '#1D4A3F',
+  accentDeep: '#123830',
+  accentSoft: '#E9F0EC',
+
+  // Cuivre — coups de cœur, révélations, baisses de prix. Rien d'autre.
+  copper: '#B4562F',
+  copperSoft: '#F8ECE4',
 
   // Actions de swipe
-  like: '#4E9B6F',
-  likeSoft: '#E9F4EE',
-  dislike: '#DE6A4E',
-  dislikeSoft: '#FBEDE8',
-  superlike: '#A34E78',
-  superlikeSoft: '#F7EAF1',
+  like: '#1D4A3F',
+  likeSoft: '#E9F0EC',
+  dislike: '#5F5F66',
+  dislikeSoft: '#EFEFED',
+  superlike: '#B4562F',
+  superlikeSoft: '#F8ECE4',
 
   // Sémantique
-  danger: '#C94F3D',
-  warning: '#C9922E',
+  danger: '#B3402C',
+  warning: '#B07C24',
 
   // Voiles et dégradés
-  overlay: 'rgba(21, 21, 21, 0.42)',
-  scrimTransparent: 'rgba(21, 21, 21, 0)',
-  scrimBottom: 'rgba(21, 21, 21, 0.55)',
-  frost: 'rgba(255, 255, 255, 0.82)',
+  overlay: 'rgba(28, 28, 30, 0.45)',
+  scrimTransparent: 'rgba(16, 18, 17, 0)',
+  scrimBottom: 'rgba(16, 18, 17, 0.62)',
+  frost: 'rgba(255, 255, 255, 0.9)',
 } as const;
 
 export type AppColor = keyof typeof colors;

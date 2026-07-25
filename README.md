@@ -91,6 +91,10 @@ derniers swipes, exclusions — voir [docs/DIAGNOSTICS.md](docs/DIAGNOSTICS.md).
 
 ## Documentation
 
+- [docs/VISUAL_DIRECTION_V2.md](docs/VISUAL_DIRECTION_V2.md) — direction artistique V2 (référence)
+- [docs/MOTION_SYSTEM.md](docs/MOTION_SYSTEM.md) — système d'animations et calibrage du swipe
+- [docs/ENGAGEMENT_LOOP.md](docs/ENGAGEMENT_LOOP.md) — boucle d'engagement sans manipulation
+- [docs/SCREEN_AUDIT.md](docs/SCREEN_AUDIT.md) — audit V1 → décisions V2, scénarios UX
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — structure du code, flux de données
 - [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) — tokens, typographie, composants
 - [docs/DATABASE.md](docs/DATABASE.md) — schéma Supabase et modèle universel

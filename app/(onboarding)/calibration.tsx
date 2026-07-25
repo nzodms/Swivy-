@@ -6,8 +6,8 @@ import { AppText } from '@/components';
 import { track } from '@/features/analytics/track';
 import { SwipeActionBar } from '@/features/discovery/SwipeActionBar';
 import { SwipeDeck, type SwipeDeckHandle } from '@/features/discovery/SwipeDeck';
+import type { DeckItem } from '@/features/discovery/deckTypes';
 import { OnboardingScaffold } from '@/features/onboarding/OnboardingScaffold';
-import { compatibilityPercent } from '@/features/recommendations';
 import { calibrationProducts } from '@/mocks/calibration';
 import { useTasteStore } from '@/stores/tasteStore';
 import { colors, spacing } from '@/theme';
@@ -21,7 +21,6 @@ export default function CalibrationScreen() {
   const router = useRouter();
   const deckRef = useRef<SwipeDeckHandle>(null);
 
-  const profile = useTasteStore((state) => state.profile);
   const recordSwipe = useTasteStore((state) => state.recordSwipe);
   const seedProfileFromSelections = useTasteStore((state) => state.seedProfileFromSelections);
 
@@ -45,7 +44,9 @@ export default function CalibrationScreen() {
     return 'Swipe pour situer tes goûts';
   }, [progressPercent]);
 
-  const handleSwipe = (product: Product, action: SwipeAction) => {
+  const handleSwipe = (item: DeckItem, action: SwipeAction) => {
+    if (item.kind !== 'product') return;
+    const { product } = item;
     track('calibration_swipe', {
       productId: product.id,
       position: total - remaining.length,
@@ -84,8 +85,13 @@ export default function CalibrationScreen() {
       <View style={styles.deckArea}>
         <SwipeDeck
           ref={deckRef}
-          products={remaining}
-          compatibilityFor={(product) => compatibilityPercent(profile, product)}
+          items={remaining.map((product) => ({
+            kind: 'product' as const,
+            id: product.id,
+            product,
+            presentation: 'situation' as const,
+            signal: null,
+          }))}
           onSwipe={handleSwipe}
         />
       </View>

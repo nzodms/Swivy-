@@ -33,7 +33,7 @@ export default function CategoriesScreen() {
       totalSteps={4}
       title="Qu’est-ce qui t’intéresse en ce moment ?"
       subtitle="Ces catégories seront mises en avant dans ton feed."
-      ctaLabel="Continuer"
+      ctaLabel={categories.length > 0 ? `Continuer · ${categories.length}` : 'Continuer'}
       ctaDisabled={categories.length === 0}
       onCta={() => router.push('/(onboarding)/budget')}
       onBack={() => router.back()}
